@@ -62,7 +62,8 @@ Work on a clean tree.
    xvfb-run -a ./scripts/dev.sh test
    ```
 
-2. Bump `version` in `meson.build`.
+2. Bump `version` in `meson.build`, and the date in the first line of
+   `data/gitrlz.1.in`. The manual page takes its version from `meson.build`.
 3. Add a `<release>` entry at the top of the `<releases>` block in
    `data/io.github.li9i.gitrlz.metainfo.xml.in`. A few short paragraphs, in
    the order that matters to a user. `meson test --suite data` validates it.
@@ -70,7 +71,7 @@ Work on a clean tree.
    distribution and `-1` as the revision. `docker/build-deb.sh` rewrites both
    per series at build time, so the file in the repository names one series
    only.
-5. Commit the three files as `Release X.Y.Z`, tag the commit, push both:
+5. Commit the four files as `Release X.Y.Z`, tag the commit, push both:
 
    ```bash
    git tag -a vX.Y.Z          # the annotation is the release prose
