@@ -42,6 +42,7 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 		test -f "/usr/share/icons/hicolor/${size}x${size}/apps/io.github.li9i.gitrlz.png"
 	done
 	test -f /usr/share/icons/hicolor/symbolic/apps/io.github.li9i.gitrlz-symbolic.svg
+	test -f /usr/share/bash-completion/completions/gitrlz
 
 	echo "--- the schema was compiled on install ---"
 	gsettings list-schemas | grep -qx "io.github.li9i.gitrlz.preferences.interface"
@@ -55,6 +56,7 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 	echo "--- remove ---"
 	apt-get remove -y -qq gitrl-z >/dev/null
 	test ! -e /usr/bin/gitrlz
+	test ! -e /usr/share/bash-completion/completions/gitrlz
 
 	echo "--- purge ---"
 	dpkg --purge gitrl-z

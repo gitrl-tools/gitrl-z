@@ -1,0 +1,17 @@
+# bash completion for gitrlz
+
+_gitrlz()
+{
+	local cur prev words cword
+	_init_completion || return
+
+	if [[ $cur == -* ]]; then
+		COMPREPLY=($(compgen -W '-h --help -v --version --new-window --no-wd' \
+			-- "$cur"))
+		return
+	fi
+
+	_filedir
+}
+
+complete -F _gitrlz gitrlz

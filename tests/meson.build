@@ -57,6 +57,16 @@ foreach name : unit_tests
 endforeach
 
 test(
+  'completion',
+  find_program('unit/test-completion.sh'),
+  args: [
+    gitrlz_exe,
+    join_paths(meson.project_source_root(), 'data', 'gitrlz.bash-completion'),
+  ],
+  suite: 'unit',
+)
+
+test(
   'manual',
   find_program('unit/test-manual.sh'),
   args: [gitrlz_exe, man_page],

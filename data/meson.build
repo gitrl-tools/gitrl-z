@@ -121,3 +121,9 @@ man_page = configure_file(
 )
 
 install_man(man_page)
+
+install_data(
+  'gitrlz.bash-completion',
+  install_dir: join_paths(gitrlz_datadir, 'bash-completion', 'completions'),
+  rename: gitrlz_binary,
+)

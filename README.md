@@ -50,7 +50,7 @@ sudo add-apt-repository ppa:li9i/gitrl-z
 sudo apt-get install gitrl-z
 ```
 
-The package is `gitrl-z`. The command is `gitrlz`.
+The package is `gitrl-z`. The command is `gitrlz`. In bash, TAB completes its options, then the paths.
 
 ### `.deb` package
 
@@ -80,6 +80,8 @@ To call it as `gitrlz` from any directory, add an alias to your shell from the f
 ```bash
 echo "alias gitrlz='$PWD/gitrl-z-*-x86_64.AppImage'" >> ~/.bashrc
 ```
+
+The AppImage has no TAB completion. The package has it, and so does `meson install`.
 
 ## Build from source
 
