@@ -1,3 +1,12 @@
+gitrl-z (0.8.2-1) noble; urgency=medium
+
+  * In bash, TAB completes gitrlz: the options, then the paths. The
+    package installs the completion. The AppImage has no completion.
+  * The manual page shows -v for --version, and it gives the version of
+    the release.
+
+ -- alexandros filotheou <alexandros.filotheou@gmail.com>  Wed, 30 Sep 2026 13:13:21 +0200
+
 gitrl-z (0.8.1-1) noble; urgency=medium
 
   * Build the orig tarball from only the files that git tracks, for the

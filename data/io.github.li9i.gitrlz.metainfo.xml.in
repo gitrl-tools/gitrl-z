@@ -62,6 +62,18 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.8.2" date="2026-09-30">
+      <description>
+        <p>
+          In bash, TAB completes gitrlz: the options, then the paths. The
+          package installs the completion. The AppImage has no completion.
+        </p>
+        <p>
+          The manual page shows -v for --version, and it gives the version of
+          the release.
+        </p>
+      </description>
+    </release>
     <release version="0.8.1" date="2026-09-26">
       <description>
         <p>
