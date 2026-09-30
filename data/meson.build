@@ -111,4 +111,13 @@ else
   message('neither appstreamcli nor appstream-util found; metainfo not validated')
 endif
 
-install_man('gitrlz.1')
+man_conf = configuration_data()
+man_conf.set('VERSION', gitrlz_version)
+
+man_page = configure_file(
+  input: 'gitrlz.1.in',
+  output: 'gitrlz.1',
+  configuration: man_conf,
+)
+
+install_man(man_page)

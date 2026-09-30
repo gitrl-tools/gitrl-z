@@ -1,4 +1,4 @@
-.TH GITRLZ 1 "2026-07-21" "gitrl-z 0.1.0" "User Commands"
+.TH GITRLZ 1 "2026-09-30" "gitrl-z @VERSION@" "User Commands"
 .SH NAME
 gitrlz \- visual git reflog browser with reset preview
 .SH SYNOPSIS
@@ -38,7 +38,7 @@ Open a new window rather than reusing an existing one.
 .B \-\-no\-wd
 Do not open the working directory's repository. Used by the desktop entry.
 .TP
-.B \-\-version
+.B \-v ", " \-\-version
 Print the version and exit.
 .TP
 .B \-h ", " \-\-help

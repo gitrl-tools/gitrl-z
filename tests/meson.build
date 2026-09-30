@@ -56,6 +56,13 @@ foreach name : unit_tests
   )
 endforeach
 
+test(
+  'manual',
+  find_program('unit/test-manual.sh'),
+  args: [gitrlz_exe, man_page],
+  suite: 'unit',
+)
+
 xvfb_wrapper = find_program('ui/run-xvfb.sh')
 
 ui_tests = [
