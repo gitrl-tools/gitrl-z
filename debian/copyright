@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gitrl-z
 Upstream-Contact: alexandros filotheou <alexandros.filotheou@gmail.com>
-Source: https://github.com/li9i/gitrl-z
+Source: https://github.com/gitrl-tools/gitrl-z
 Comment:
  gitrl-z is built from a vendored subtree of gitg 44, which lives under
  src/vendor-gitg/ and keeps its original copyright and licensing. The exact

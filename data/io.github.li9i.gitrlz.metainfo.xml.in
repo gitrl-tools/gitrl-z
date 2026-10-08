@@ -29,12 +29,12 @@
   <screenshots>
     <screenshot type="default">
       <caption>The reflog lists what happened; the graph shows where a reset would land</caption>
-      <image>https://raw.githubusercontent.com/li9i/gitrl-z/master/docs/screenshots/reflog-activity.png</image>
+      <image>https://raw.githubusercontent.com/gitrl-tools/gitrl-z/master/docs/screenshots/reflog-activity.png</image>
     </screenshot>
   </screenshots>
 
-  <url type="homepage">https://github.com/li9i/gitrl-z</url>
-  <url type="bugtracker">https://github.com/li9i/gitrl-z/issues</url>
+  <url type="homepage">https://github.com/gitrl-tools/gitrl-z</url>
+  <url type="bugtracker">https://github.com/gitrl-tools/gitrl-z/issues</url>
 
   <developer id="io.github.li9i">
     <name>alexandros filotheou</name>
