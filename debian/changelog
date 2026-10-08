@@ -1,3 +1,11 @@
+gitrl-z (0.8.3-1) noble; urgency=medium
+
+  * The project moved to the gitrl-tools organisation on GitHub. The
+    About window, the package and the AppStream data link to the new
+    address.
+
+ -- alexandros filotheou <alexandros.filotheou@gmail.com>  Thu, 08 Oct 2026 11:28:02 +0200
+
 gitrl-z (0.8.2-1) noble; urgency=medium
 
   * In bash, TAB completes gitrlz: the options, then the paths. The

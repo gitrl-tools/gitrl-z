@@ -1,6 +1,6 @@
 project(
   'gitrl-z', ['c', 'vala'],
-  version: '0.8.2',
+  version: '0.8.3',
   license: 'GPL-2.0-or-later',
   default_options: 'buildtype=debugoptimized',
   meson_version: '>= 0.59.0',

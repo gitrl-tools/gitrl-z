@@ -1,4 +1,4 @@
-.TH GITRLZ 1 "2026-09-30" "gitrl-z @VERSION@" "User Commands"
+.TH GITRLZ 1 "2026-10-08" "gitrl-z @VERSION@" "User Commands"
 .SH NAME
 gitrlz \- visual git reflog browser with reset preview
 .SH SYNOPSIS
