@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="data/icons/io.github.li9i.gitrlz.svg" alt="gitrl-z logo" width="128">
+</p>
+
 # `gitrl-z`
 
 > A visual reflog browser with reset preview
