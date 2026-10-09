@@ -25,9 +25,11 @@ Comment:
  headers of the vendored files.
 License: GPL-2+
 
-Files: data/icons/io.github.li9i.gitrlz-128.png
+Files: data/icons/io.github.li9i.gitrlz.svg
+       data/icons/io.github.li9i.gitrlz-128.png
        data/icons/io.github.li9i.gitrlz-64.png
        data/icons/io.github.li9i.gitrlz-48.png
+       data/icons/io.github.li9i.gitrlz-symbolic.svg
 Copyright: 2026 alexandros filotheou <alexandros.filotheou@gmail.com>
            Jason Long
 License: CC-BY-3.0
@@ -39,15 +41,12 @@ Comment:
  is an adaptation of Jason Long's work, since the Git logo is not separable
  from it.
  .
- The 64 and 48 pixel files are downscales of the 128 pixel original, generated
- by scripts/regen-icons.sh.
-
-Files: data/icons/io.github.li9i.gitrlz-symbolic.svg
-Copyright: 2026 alexandros filotheou <alexandros.filotheou@gmail.com>
-License: GPL-2+
-Comment:
- Drawn for gitrl-z. Not derived from the Git logo — it is an undo arrow over
- two commit dots.
+ The symbolic icon is the silhouette of the application icon in one colour:
+ the Git logo diamond with the circular arrow around it. It is an adaptation
+ of the Git logo for the same reason.
+ .
+ The PNG files are rendered from the SVG by scripts/regen-icons.sh, each at
+ its own size.
 
 License: GPL-2+
  This program is free software; you can redistribute it and/or modify it
