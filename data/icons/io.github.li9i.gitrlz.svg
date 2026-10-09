@@ -15,8 +15,8 @@
 
   <!-- The reflog, behind the diamond. Radius 25.5, centred on 32,32. -->
   <path d="M21.22 55.11A25.5 25.5 0 1 0 13.97 13.97"
-        fill="none" stroke="#3A8F94" stroke-width="5.8" stroke-linecap="round"/>
-  <path d="M7.00 20.94L8.64 8.64L19.30 19.30Z" fill="#3A8F94"/>
+        fill="none" stroke="#5A82B3" stroke-width="5.8" stroke-linecap="round"/>
+  <path d="M7.00 20.94L8.64 8.64L19.30 19.30Z" fill="#5A82B3"/>
 
   <!-- The diamond: a square on its corner. -->
   <rect x="13" y="13" width="38" height="38" rx="5" fill="#F05033"
