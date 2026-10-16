@@ -125,6 +125,22 @@ docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
 sudo apt-get install ./_build/deb/gitrl-z_*~ubuntu26.04.1_amd64.deb
 ```
 
+### For one user
+
+```bash
+meson setup --prefix="$HOME/.local" _build
+meson install -C _build
+```
+
+The install puts `gitrlz` in `~/.local/bin`, with `gitz` as a short name for it if no other program called `gitz` is on the `PATH`. That folder must be on the `PATH`. GLib and bash find the settings schema and the TAB completion with no more configuration.
+
+Uninstalling does not remove `gitz`. Remove it first, then uninstall:
+
+```bash
+~/.local/share/gitrl-z/alias-link.sh remove
+ninja -C _build uninstall
+```
+
 ## How to run it
 
 ```bash
