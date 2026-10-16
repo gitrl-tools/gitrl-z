@@ -122,8 +122,33 @@ man_page = configure_file(
 
 install_man(man_page)
 
+bash_completion_dir = join_paths(gitrlz_datadir, 'bash-completion', 'completions')
+
 install_data(
   'gitrlz.bash-completion',
-  install_dir: join_paths(gitrlz_datadir, 'bash-completion', 'completions'),
+  install_dir: bash_completion_dir,
   rename: gitrlz_binary,
 )
+
+alias_link_conf = configuration_data()
+alias_link_conf.set('BINARY', gitrlz_binary)
+alias_link_conf.set('ALIAS', gitrlz_alias)
+alias_link_conf.set('BINDIR', gitrlz_bindir)
+alias_link_conf.set('COMPLETIONDIR', bash_completion_dir)
+alias_link_conf.set(
+  'MANDIR',
+  join_paths(gitrlz_prefix, get_option('mandir'), 'man1'),
+)
+
+alias_link_script = configure_file(
+  input: 'alias-link.sh.in',
+  output: 'alias-link.sh',
+  configuration: alias_link_conf,
+  install: true,
+  install_dir: gitrlz_pkgdatadir,
+  install_mode: 'rwxr-xr-x',
+)
+
+if get_option('alias_link')
+  meson.add_install_script(alias_link_script, 'add')
+endif

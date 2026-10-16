@@ -9,6 +9,7 @@ project(
 application_id = 'io.github.li9i.gitrlz'
 gitrlz_name = meson.project_name()
 gitrlz_binary = 'gitrlz'
+gitrlz_alias = 'gitz'
 gitrlz_version = meson.project_version()
 gitrlz_gettext = gitrlz_binary
 

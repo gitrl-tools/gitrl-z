@@ -7,6 +7,13 @@ option(
 )
 
 option(
+  'alias_link',
+  type: 'boolean',
+  value: true,
+  description: 'Link gitz to gitrlz at install time, unless another file holds that name. A distribution package turns this off and runs the installed alias-link.sh from its own install scripts.',
+)
+
+option(
   'visual_tests',
   type: 'boolean',
   value: false,

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = configure ]; then
+	/usr/share/gitrl-z/alias-link.sh add
+fi
+
+#DEBHELPER#

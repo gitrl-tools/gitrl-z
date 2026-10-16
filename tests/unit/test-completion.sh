@@ -15,6 +15,7 @@ trap 'rm -rf "$tmp"' EXIT
 
 mkdir -p "$tmp/completions" "$tmp/work/sub"
 cp "$script" "$tmp/completions/gitrlz"
+ln -s gitrlz "$tmp/completions/gitz"
 export BASH_COMPLETION_USER_DIR=$tmp
 touch "$tmp/work/notes.txt"
 cd "$tmp/work"
@@ -72,5 +73,6 @@ expect()
 expect "gitrlz -" "$(cat "$tmp/options")"
 expect "gitrlz n" "notes.txt"
 expect "gitrlz --no-wd s" "sub"
+expect "gitz n" "notes.txt"
 
 exit $status

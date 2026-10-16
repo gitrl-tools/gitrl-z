@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Adds or removes @ALIAS@, a short name for @BINARY@, with links of the same
+# name for its bash completion and its manual page. A name that a file of
+# another owner holds is kept as it is, and if @ALIAS@ itself is held, no link
+# is added. DESTDIR, if set, is the root of the install.
+
+set -eu
+
+binary=@BINARY@
+alias=@ALIAS@
+root=${DESTDIR:-}
+targets="@BINDIR@/$binary @COMPLETIONDIR@/$binary
+@MANDIR@/$binary.1 @MANDIR@/$binary.1.gz"
+
+add()
+{
+	command=$root@BINDIR@/$alias
+
+	if ! free "$command" && ! ours "$command" "$binary"; then
+		return
+	fi
+
+	for target in $targets; do
+		link=$(link_of "$root$target")
+
+		if [ -e "$root$target" ] && free "$link"; then
+			ln -s "${target##*/}" "$link"
+		fi
+	done
+}
+
+free()
+{
+	[ ! -e "$1" ] && [ ! -L "$1" ]
+}
+
+link_of()
+{
+	echo "${1%/*}/$alias${1##*/$binary}"
+}
+
+ours()
+{
+	[ "$(readlink "$1")" = "$2" ]
+}
+
+remove()
+{
+	for target in $targets; do
+		link=$(link_of "$root$target")
+
+		if ours "$link" "${target##*/}"; then
+			rm "$link"
+		fi
+	done
+}
+
+case $1 in
+add) add ;;
+remove) remove ;;
+esac

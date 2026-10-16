@@ -32,17 +32,20 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 
 	echo "--- the binary runs ---"
 	test "$(gitrlz --version)" = "gitrlz $GITRLZ_VERSION"
+	test "$(gitz --version)" = "gitrlz $GITRLZ_VERSION"
 
 	echo "--- files are where the package said ---"
 	test -x /usr/bin/gitrlz
 	test -f /usr/share/applications/io.github.li9i.gitrlz.desktop
 	test -f /usr/share/metainfo/io.github.li9i.gitrlz.metainfo.xml
 	test -f /usr/share/man/man1/gitrlz.1.gz
+	test -f /usr/share/man/man1/gitz.1.gz
 	for size in 128 64 48; do
 		test -f "/usr/share/icons/hicolor/${size}x${size}/apps/io.github.li9i.gitrlz.png"
 	done
 	test -f /usr/share/icons/hicolor/symbolic/apps/io.github.li9i.gitrlz-symbolic.svg
 	test -f /usr/share/bash-completion/completions/gitrlz
+	test -f /usr/share/bash-completion/completions/gitz
 
 	echo "--- the schema was compiled on install ---"
 	gsettings list-schemas | grep -qx "io.github.li9i.gitrlz.preferences.interface"
@@ -56,6 +59,7 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 	echo "--- remove ---"
 	apt-get remove -y -qq gitrl-z >/dev/null
 	test ! -e /usr/bin/gitrlz
+	test ! -e /usr/bin/gitz
 	test ! -e /usr/share/bash-completion/completions/gitrlz
 
 	echo "--- purge ---"
@@ -72,6 +76,15 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 		echo "gitrl-z still installed after purge" >&2
 		exit 1
 	fi
+
+	echo "--- it keeps a gitz of another owner ---"
+	echo other >/usr/bin/gitz
+	apt-get install -y -qq /tmp/gitrl-z.deb >/dev/null
+	test "$(cat /usr/bin/gitz)" = other
+	test ! -e /usr/share/bash-completion/completions/gitz
+	test ! -e /usr/share/man/man1/gitz.1.gz
+	apt-get remove -y -qq gitrl-z >/dev/null
+	test "$(cat /usr/bin/gitz)" = other
 '
 
 echo "install/remove/purge clean"

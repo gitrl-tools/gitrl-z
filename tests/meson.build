@@ -73,6 +73,14 @@ test(
   suite: 'unit',
 )
 
+test(
+  'alias-link',
+  find_program('packaging/test-alias-link.sh'),
+  args: [meson.project_build_root()],
+  suite: 'install',
+  depends: [gitrlz_exe, gschemas_compiled],
+)
+
 xvfb_wrapper = find_program('ui/run-xvfb.sh')
 
 ui_tests = [

@@ -14,4 +14,4 @@ _gitrlz()
 	_filedir
 }
 
-complete -F _gitrlz gitrlz
+complete -F _gitrlz gitrlz gitz
