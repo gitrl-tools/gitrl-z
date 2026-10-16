@@ -12,13 +12,15 @@ fi
 
 deb=$(readlink -f "$deb")
 
-echo "testing $(basename "$deb")"
-
 full=$(dpkg-deb -f "$deb" Version)
 upstream=${full%%-*}
+series=$(echo "$full" | sed -n 's/.*~ubuntu\([0-9][0-9]\.[0-9][0-9]\).*/\1/p')
+image=ubuntu:${series:-24.04}
+
+echo "testing $(basename "$deb") in $image"
 
 docker run --rm -e GITRLZ_VERSION="$upstream" \
-	-v "$deb:/tmp/gitrl-z.deb:ro" ubuntu:24.04 sh -eu -c '
+	-v "$deb:/tmp/gitrl-z.deb:ro" "$image" sh -eu -c '
 	export DEBIAN_FRONTEND=noninteractive
 
 	rm -f /etc/dpkg/dpkg.cfg.d/excludes

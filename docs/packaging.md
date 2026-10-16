@@ -15,8 +15,8 @@ that only you have.
   override for packages that are not for Debian.
 - The `.deb` builds in a container that holds only the declared
   `Build-Depends`. A Launchpad buildd makes the same check.
-- The install, remove and purge operations are verified in an unmodified
-  `ubuntu:24.04`.
+- The install, remove and purge operations are verified in unmodified
+  `ubuntu:24.04` and `ubuntu:26.04` containers.
 - The package is `gitrl-z`. The command is `gitrlz`. The version is `0.9.0-1`,
   built for **noble** (24.04) and **resolute** (26.04).
 
@@ -107,8 +107,14 @@ artefact from an earlier version.
 ```bash
 ./tests/packaging/test-lintian.sh \
     _build/deb/gitrl-z_X.Y.Z-1~ubuntu24.04.1_amd64.changes
-./tests/packaging/test-install.sh
+./tests/packaging/test-install.sh \
+    _build/deb/gitrl-z_X.Y.Z-1~ubuntu24.04.1_amd64.deb
+./tests/packaging/test-install.sh \
+    _build/deb/gitrl-z_X.Y.Z-1~ubuntu26.04.1_amd64.deb
 ```
+
+`test-install.sh` installs each `.deb` in the Ubuntu release that its version
+names, and in `ubuntu:24.04` if the version names none.
 
 Given no argument, `test-lintian.sh` takes the first `.changes` it finds, which
 is the wrong one whenever an older build is still in `_build/deb`. Name the
