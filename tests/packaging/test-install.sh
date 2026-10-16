@@ -85,6 +85,16 @@ docker run --rm -e GITRLZ_VERSION="$upstream" \
 	test ! -e /usr/share/man/man1/gitz.1.gz
 	apt-get remove -y -qq gitrl-z >/dev/null
 	test "$(cat /usr/bin/gitz)" = other
+	rm /usr/bin/gitz
+	dpkg --purge gitrl-z
+
+	echo "--- it does not hide a gitz on the PATH ---"
+	printf "#!/bin/sh\necho other\n" >/usr/local/bin/gitz
+	chmod +x /usr/local/bin/gitz
+	apt-get install -y -qq /tmp/gitrl-z.deb >/dev/null
+	test ! -e /usr/bin/gitz
+	test ! -e /usr/share/bash-completion/completions/gitz
+	test ! -e /usr/share/man/man1/gitz.1.gz
 '
 
 echo "install/remove/purge clean"

@@ -3,7 +3,8 @@
 set -e
 
 if [ "$1" = configure ]; then
-	/usr/share/gitrl-z/alias-link.sh add
+	PATH=/usr/local/sbin:/usr/local/bin:$PATH \
+		/usr/share/gitrl-z/alias-link.sh add
 fi
 
 #DEBHELPER#

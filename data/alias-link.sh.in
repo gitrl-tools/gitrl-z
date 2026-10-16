@@ -2,8 +2,10 @@
 
 # Adds or removes @ALIAS@, a short name for @BINARY@, with links of the same
 # name for its bash completion and its manual page. A name that a file of
-# another owner holds is kept as it is, and if @ALIAS@ itself is held, no link
-# is added. DESTDIR, if set, is the root of the install.
+# another owner holds is kept as it is. No link is added if @ALIAS@ itself is
+# held, or if the PATH already finds an @ALIAS@ that is not @BINARY@.
+# DESTDIR, if set, is the root of a staged install, and the PATH of this
+# computer then does not apply.
 
 set -eu
 
@@ -18,6 +20,10 @@ add()
 	command=$root@BINDIR@/$alias
 
 	if ! free "$command" && ! ours "$command" "$binary"; then
+		return
+	fi
+
+	if [ -z "$root" ] && other_on_path; then
 		return
 	fi
 
@@ -38,6 +44,12 @@ free()
 link_of()
 {
 	echo "${1%/*}/$alias${1##*/$binary}"
+}
+
+other_on_path()
+{
+	found=$(command -v "$alias") || return 1
+	[ "$(basename "$(readlink -f "$found")")" != "$binary" ]
 }
 
 ours()

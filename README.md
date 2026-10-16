@@ -54,7 +54,7 @@ sudo add-apt-repository ppa:li9i/gitrl-z
 sudo apt-get install gitrl-z
 ```
 
-The package is `gitrl-z`. The command is `gitrlz`, or `gitz` for short. The install adds `gitz` only if `/usr/bin/gitz` does not exist yet. In bash, TAB completes its options, then the paths.
+The package is `gitrl-z`. The command is `gitrlz`, or `gitz` for short. The install adds `gitz` only if no other program called `gitz` is on the `PATH`. In bash, TAB completes its options, then the paths.
 
 ### `.deb` package
 
