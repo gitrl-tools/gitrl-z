@@ -10,6 +10,8 @@ if [ ! -f "$deb" ]; then
 	exit 1
 fi
 
+deb=$(readlink -f "$deb")
+
 echo "testing $(basename "$deb")"
 
 full=$(dpkg-deb -f "$deb" Version)

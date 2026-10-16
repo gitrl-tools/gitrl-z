@@ -10,14 +10,16 @@ if [ ! -f "$changes" ]; then
 	exit 1
 fi
 
+changes=$(readlink -f "$changes")
+
 echo "--- overridden tags (expected, and each one justified in debian/) ---"
 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-	-v "$root:/src" -w /src gitrlz-build \
-	lintian --pedantic --show-overrides "${changes#$root/}" 2>&1 | grep '^O:' || true
+	-v "$(dirname "$changes"):/src" -w /src gitrlz-build \
+	lintian --pedantic --show-overrides "$(basename "$changes")" 2>&1 | grep '^O:' || true
 
 echo "--- unoverridden tags (must be none) ---"
 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
-	-v "$root:/src" -w /src gitrlz-build \
-	lintian --pedantic --info "${changes#$root/}"
+	-v "$(dirname "$changes"):/src" -w /src gitrlz-build \
+	lintian --pedantic --info "$(basename "$changes")"
 
 echo "lintian clean"
