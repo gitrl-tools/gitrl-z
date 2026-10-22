@@ -56,6 +56,86 @@ private static bool has_label(string[] names, string name)
 	return false;
 }
 
+private static bool close_to(uint8* pixel, Gdk.RGBA colour)
+{
+	var red = pixel[2] - colour.red * 255;
+	var green = pixel[1] - colour.green * 255;
+	var blue = pixel[0] - colour.blue * 255;
+
+	return red * red + green * green + blue * blue < 48 * 48;
+}
+
+private static int ink_of(uint8* pixel)
+{
+	return pixel[0] + pixel[1] + pixel[2];
+}
+
+private static void ink_range(Cairo.ImageSurface surface, int y,
+                              out int darkest, out int lightest)
+{
+	darkest = 3 * 255;
+	lightest = 0;
+
+	for (var j = y - 3; j <= y + 3; j++)
+	{
+		for (var i = 8; i < right_end(surface, y) - 3; i++)
+		{
+			darkest = int.min(darkest, ink_of(pixel_at(surface, i, j)));
+			lightest = int.max(lightest, ink_of(pixel_at(surface, i, j)));
+		}
+	}
+}
+
+private static Gitg.Color lane_colour(uint index)
+{
+	var colour = new Gitg.Color();
+	colour.idx = index;
+
+	return colour;
+}
+
+private static Cairo.ImageSurface pill_of(Gitg.Repository repository,
+                                          Gtk.Widget widget,
+                                          string name,
+                                          Gitg.Color lane,
+                                          int width,
+                                          int height) throws Error
+{
+	var font = widget.get_style_context().get_font(Gtk.StateFlags.NORMAL);
+	var labels = new SList<Gitg.Ref>();
+	var surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, width, height);
+	Gdk.Rectangle area = { 0, 0, width, height };
+
+	labels.append(repository.lookup_reference(name));
+	Gitg.LabelRenderer.draw(widget, font, new Cairo.Context(surface),
+	                        labels, area, lane);
+	surface.flush();
+
+	return surface;
+}
+
+private static uint8* pixel_at(Cairo.ImageSurface surface, int x, int y)
+{
+	return (uint8*)surface.get_data() + y * surface.get_stride() + x * 4;
+}
+
+private static Gdk.RGBA rgba_of(Gitg.Color colour)
+{
+	return { colour.r, colour.g, colour.b, 1 };
+}
+
+private static int right_end(Cairo.ImageSurface surface, int y)
+{
+	var x = surface.get_width() - 1;
+
+	while (pixel_at(surface, x, y)[3] == 0)
+	{
+		x--;
+	}
+
+	return x;
+}
+
 private static Repo braided_repo() throws Error
 {
 	var repo = Repo.create();
@@ -174,6 +254,120 @@ private static void test_checked_out_branch_is_marked()
 		assert_false("checked out" in detached.ref_label("feature"));
 
 		detached.destroy();
+		repo.remove();
+	}
+	catch (Error e)
+	{
+		Test.fail_printf("fixture failed: %s", e.message);
+	}
+}
+
+private static void test_checked_out_pill_is_pointed_and_filled_like_the_others()
+{
+	try
+	{
+		var repo = braided_repo();
+		var location = Gitrlz.Application.discover_repository(repo.path);
+		var repository = Gitrlz.Repository.open(location);
+		var screen = Gdk.Screen.get_default();
+		var style = new Gtk.CssProvider();
+		var view = new Gtk.TreeView();
+		var width = 120;
+		var height = 23;
+		var middle = height / 2;
+
+		style.load_from_resource("/io/github/li9i/gitrlz/ui/style.css");
+		Gtk.StyleContext.add_provider_for_screen(
+			screen, style, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+		var lane = lane_colour(0);
+		var head = pill_of(repository, view, "refs/heads/main", lane,
+		                   width, height);
+		var other = pill_of(repository, view, "refs/heads/feature", lane,
+		                    width, height);
+
+		assert_cmpint(pixel_at(head, 5, 4)[3], CompareOperator.EQ, 0);
+		assert_cmpint(pixel_at(other, 5, 4)[3], CompareOperator.GT, 0);
+
+		assert_true(close_to(
+			pixel_at(head, right_end(head, middle) - 3, middle),
+			rgba_of(lane)));
+		assert_true(close_to(
+			pixel_at(other, right_end(other, middle) - 3, middle),
+			rgba_of(lane)));
+
+		Gtk.StyleContext.remove_provider_for_screen(screen, style);
+		repo.remove();
+	}
+	catch (Error e)
+	{
+		Test.fail_printf("fixture failed: %s", e.message);
+	}
+}
+
+private static void test_branch_pills_take_the_colour_of_their_line()
+{
+	try
+	{
+		var repo = braided_repo();
+		repo.git({"tag", "v1"});
+		var location = Gitrlz.Application.discover_repository(repo.path);
+		var repository = Gitrlz.Repository.open(location);
+		var screen = Gdk.Screen.get_default();
+		var style = new Gtk.CssProvider();
+		var view = new Gtk.TreeView();
+		var width = 120;
+		var height = 23;
+		var middle = height / 2;
+		var yellow = lane_colour(0);
+		var blue = lane_colour(3);
+		int darkest;
+		int lightest;
+
+		style.load_from_resource("/io/github/li9i/gitrlz/ui/style.css");
+		Gtk.StyleContext.add_provider_for_screen(
+			screen, style, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+		var on_yellow = pill_of(repository, view, "refs/heads/feature",
+		                        yellow, width, height);
+		var fill = pixel_at(on_yellow, right_end(on_yellow, middle) - 3,
+		                    middle);
+		ink_range(on_yellow, middle, out darkest, out lightest);
+
+		assert_true(close_to(fill, rgba_of(yellow)));
+		assert_cmpint(darkest, CompareOperator.LT,
+		              ink_of(fill) - 48);
+		assert_cmpint(lightest, CompareOperator.LE,
+		              ink_of(fill) + 48);
+
+		var on_blue = pill_of(repository, view, "refs/heads/feature",
+		                      blue, width, height);
+		fill = pixel_at(on_blue, right_end(on_blue, middle) - 3, middle);
+		ink_range(on_blue, middle, out darkest, out lightest);
+
+		assert_true(close_to(fill, rgba_of(blue)));
+		assert_cmpint(lightest, CompareOperator.GT,
+		              ink_of(fill) + 48);
+		assert_cmpint(darkest, CompareOperator.GE,
+		              ink_of(fill) - 48);
+
+		var tag = pill_of(repository, view, "refs/tags/v1", yellow,
+		                  width, height);
+
+		assert_false(close_to(
+			pixel_at(tag, right_end(tag, middle) - 3, middle),
+			rgba_of(yellow)));
+
+		var head = pill_of(repository, view, "refs/heads/main", yellow,
+		                   width, height);
+		fill = pixel_at(head, right_end(head, middle) - 3, middle);
+		ink_range(head, middle, out darkest, out lightest);
+
+		assert_true(close_to(fill, rgba_of(yellow)));
+		assert_cmpint(darkest, CompareOperator.LT,
+		              ink_of(fill) - 48);
+
+		Gtk.StyleContext.remove_provider_for_screen(screen, style);
 		repo.remove();
 	}
 	catch (Error e)
@@ -2292,6 +2486,10 @@ public static int main(string[] args)
 
 	Test.add_func("/gitrlz/activity/refs-panel-contents", test_refs_panel_contents);
 	Test.add_func("/gitrlz/activity/checked-out-branch-marked", test_checked_out_branch_is_marked);
+	Test.add_func("/gitrlz/activity/checked-out-pill",
+	              test_checked_out_pill_is_pointed_and_filled_like_the_others);
+	Test.add_func("/gitrlz/activity/branch-pill-line-colour",
+	              test_branch_pills_take_the_colour_of_their_line);
 	Test.add_func("/gitrlz/activity/stash-entry", test_stash_entry_appears_only_with_a_stash);
 	Test.add_func("/gitrlz/activity/selecting-a-ref-reloads", test_selecting_a_ref_reloads_the_list);
 	Test.add_func("/gitrlz/activity/empty-plan-shows-tree", test_empty_plan_shows_the_repository_tree);

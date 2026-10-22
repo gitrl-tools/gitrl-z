@@ -1,0 +1,11 @@
+--- a/libgitg/gitg-cell-renderer-lanes.vala
++++ b/libgitg/gitg-cell-renderer-lanes.vala
+@@ -240,7 +240,7 @@
+ 
+ 			context.save();
+ 			context.translate(offset, 0);
+-			LabelRenderer.draw(widget, font_desc, context, labels, area);
++			LabelRenderer.draw(widget, font_desc, context, labels, area, commit.lane.color);
+ 			context.restore();
+ 		}
+ 

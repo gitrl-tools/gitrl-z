@@ -200,3 +200,7 @@ GitgHistoryRefRow {
 	border: none;
 	box-shadow: none;
 }
+
+.branch.light-fill {
+	color: @aluminium6;
+}

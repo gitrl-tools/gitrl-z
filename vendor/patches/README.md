@@ -10,10 +10,10 @@ Regenerate any patch with:
 
 Run this after `vendor/fetch-upstream.sh` populates `vendor/upstream/`.
 
-Eleven files have patches. Everything else in `src/vendor-gitg/` is
+Thirteen files have patches. Everything else in `src/vendor-gitg/` is
 byte-identical to gitg 44.
 
-Five of the eleven are the diff pane, and all five have the same cause. It is
+Five of the thirteen are the diff pane, and all five have the same cause. It is
 written out once under `gitg-diff-view-file-renderer-text.patch` and referred
 to from the other four.
 
@@ -254,3 +254,37 @@ rest exist to keep that property in step with the renderers.
 Setting it sets the property of every file the pane holds, and every file the
 pane builds afterwards takes the current value. `Gitrlz.DiffWindow` drives it
 from the title bar and remembers it in the `state.diff` schema.
+
+## gitg-cell-renderer-lanes.patch
+
+Gives the colour of the lane of the commit to the labels of that commit.
+
+**Why.** `gitg-label-renderer.patch` fills a branch label with the colour of
+its lane. Only the lane renderer knows that colour.
+
+Cost: none.
+
+## gitg-label-renderer.patch
+
+Two changes.
+
+**1. Draws the label of the checked-out branch with a pointed left end.**
+
+**Why.** gitg draws all branch labels in the commit graph the same. Thus the
+graph does not show which branch is checked out. The shape of the label now
+shows it, with no more text. Its colours are those of the other branch
+labels. When HEAD is detached, no label changes.
+
+**2. Fills the label of a local branch with the colour of its lane.**
+
+**Why.** gitg fills each label with the colour of its kind. Thus the label
+does not show which line of the graph it is on. The reflog list of gitrl-z
+already colours each branch with the colour of its lane, and the graph now
+agrees with it. The labels of remote branches, tags and the stash keep the
+colour of their kind, so that the kinds stay different. The text of the label
+is light or dark, whichever has more contrast with the fill. The style class
+`light-fill` gives the dark text, and `style.css` gives its colour with the
+colours of the other labels.
+
+Cost: the label of the checked-out branch is 8 pixels wider than before. The
+labels of local branches do not have the colours of gitg.

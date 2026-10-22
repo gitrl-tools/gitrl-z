@@ -240,7 +240,7 @@ namespace Gitg
 
 			context.save();
 			context.translate(offset, 0);
-			LabelRenderer.draw(widget, font_desc, context, labels, area);
+			LabelRenderer.draw(widget, font_desc, context, labels, area, commit.lane.color);
 			context.restore();
 		}
 

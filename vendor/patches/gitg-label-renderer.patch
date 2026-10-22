@@ -1,0 +1,250 @@
+--- a/libgitg/gitg-label-renderer.vala
++++ b/libgitg/gitg-label-renderer.vala
+@@ -23,6 +23,7 @@
+ 	{
+ 		private const int margin = 2;
+ 		private const int padding = 6;
++		private const int point = 8;
+ 
+ 		private static string label_text(Ref r)
+ 		{
+@@ -40,7 +41,7 @@
+ 			layout.set_markup(smaller, -1);
+ 			layout.get_pixel_size(out w, null);
+ 
+-			return w + padding * 2;
++			return w + padding * 2 + point_width(r);
+ 		}
+ 
+ 		public static int width(Gtk.Widget             widget,
+@@ -93,6 +94,132 @@
+ 			return style_class;
+ 		}
+ 
++		private static double contrast(Color fill, Gdk.RGBA text)
++		{
++			var a = luminance(fill.r, fill.g, fill.b);
++			var b = luminance(text.red, text.green, text.blue);
++
++			return (double.max(a, b) + 0.05) / (double.min(a, b) + 0.05);
++		}
++
++		private static void label_path(Cairo.Context cr,
++		                               double        left,
++		                               double        top,
++		                               double        right,
++		                               double        bottom,
++		                               double        radius,
++		                               int           tip)
++		{
++			cr.new_path();
++
++			if (tip > 0)
++			{
++				cr.move_to(left, (top + bottom) / 2);
++				cr.line_to(left + tip, top);
++			}
++			else
++			{
++				cr.arc(left + radius, top + radius, radius, Math.PI, 3 * Math.PI / 2);
++			}
++
++			cr.arc(right - radius, top + radius, radius, -Math.PI / 2, 0);
++			cr.arc(right - radius, bottom - radius, radius, 0, Math.PI / 2);
++
++			if (tip > 0)
++			{
++				cr.line_to(left + tip, bottom);
++			}
++			else
++			{
++				cr.arc(left + radius, bottom - radius, radius, Math.PI / 2, Math.PI);
++			}
++
++			cr.close_path();
++		}
++
++		private static double luminance(double red, double green, double blue)
++		{
++			double[] channels = { red, green, blue };
++			double[] weights = { 0.2126, 0.7152, 0.0722 };
++			var sum = 0.0;
++
++			for (var i = 0; i < channels.length; i++)
++			{
++				var c = channels[i];
++				var linear = c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
++
++				sum += weights[i] * linear;
++			}
++
++			return sum;
++		}
++
++		private static void pick_text(Gtk.StyleContext context, Color fill)
++		{
++			var state = context.get_state();
++			var light = context.get_color(state);
++
++			context.add_class("light-fill");
++
++			if (contrast(fill, light) > contrast(fill, context.get_color(state)))
++			{
++				context.remove_class("light-fill");
++			}
++		}
++
++		private static int point_width(Ref r)
++		{
++			var branch = r as Ggit.Branch;
++
++			try
++			{
++				return branch != null && branch.is_head() ? point : 0;
++			}
++			catch
++			{
++				return 0;
++			}
++		}
++
++		private static void render_shape(Gtk.StyleContext context,
++		                                 Cairo.Context    cr,
++		                                 double           x,
++		                                 double           y,
++		                                 double           width,
++		                                 double           height,
++		                                 Color?           fill,
++		                                 int              tip)
++		{
++			var state = context.get_state();
++			var border = context.get_border(state);
++			var radius = (int)context.get_property("border-radius", state);
++			var edge = (Gdk.RGBA)context.get_property("border-left-color", state);
++			var background = (Gdk.RGBA)context.get_property("background-color", state);
++
++			label_path(cr, x, y, x + width, y + height, radius, tip);
++			Gdk.cairo_set_source_rgba(cr, edge);
++			cr.fill();
++
++			label_path(cr,
++			           x + border.left,
++			           y + border.top,
++			           x + width - border.right,
++			           y + height - border.bottom,
++			           radius - border.left,
++			           tip);
++
++			if (fill != null)
++			{
++				cr.set_source_rgb(fill.r, fill.g, fill.b);
++			}
++			else
++			{
++				Gdk.cairo_set_source_rgba(cr, background);
++			}
++
++			cr.fill();
++		}
++
+ 		private static int render_label(Gtk.Widget    widget,
+ 		                                Cairo.Context cr,
+ 		                                Pango.Layout  layout,
+@@ -100,7 +227,8 @@
+ 		                                double        x,
+ 		                                double        y,
+ 		                                int           height,
+-		                                bool          use_state)
++		                                bool          use_state,
++		                                Color?        lane = null)
+ 		{
+ 			var context = widget.get_style_context();
+ 			var smaller = label_text(r);
+@@ -121,39 +249,62 @@
+ 				context.add_class(style_class);
+ 			}
+ 
++			var tip = point_width(r);
++			var fill = r.parsed_name.rtype == RefType.BRANCH ? lane : null;
++
++			if (fill != null)
++			{
++				pick_text(context, fill);
++			}
++
+ 			var rtl = (widget.get_style_context().get_state() & Gtk.StateFlags.DIR_RTL) != 0;
+ 
+ 			if (rtl)
+ 			{
+-				x -= w + padding * 2;
++				x -= w + padding * 2 + tip;
+ 			}
+ 
+-			context.render_background(cr,
+-			                          x,
+-			                          y + margin,
+-			                          w + padding * 2,
+-			                          height - margin * 2);
+-
+-			context.render_frame(cr,
+-			                     x,
+-			                     y + margin,
+-			                     w + padding * 2,
+-			                     height - margin * 2);
++			if (tip > 0 || fill != null)
++			{
++				render_shape(context,
++				             cr,
++				             x,
++				             y + margin,
++				             w + padding * 2 + tip,
++				             height - margin * 2,
++				             fill,
++				             tip);
++			}
++			else
++			{
++				context.render_background(cr,
++				                          x,
++				                          y + margin,
++				                          w + padding * 2,
++				                          height - margin * 2);
++
++				context.render_frame(cr,
++				                     x,
++				                     y + margin,
++				                     w + padding * 2,
++				                     height - margin * 2);
++			}
+ 
+ 			context.render_layout(cr,
+-			                      x + padding,
++			                      x + padding + tip,
+ 			                      y + (height - h) / 2.0 - 1,
+ 			                      layout);
+ 
+ 			context.restore();
+-			return w;
++			return w + tip;
+ 		}
+ 
+ 		public static void draw(Gtk.Widget            widget,
+ 		                        Pango.FontDescription font,
+ 		                        Cairo.Context         context,
+ 		                        SList<Ref>            labels,
+-		                        Gdk.Rectangle         area)
++		                        Gdk.Rectangle         area,
++		                        Color?                lane = null)
+ 		{
+ 			double pos;
+ 
+@@ -185,7 +336,8 @@
+ 				                     (int)pos,
+ 				                     area.y,
+ 				                     area.height,
+-				                     true);
++				                     true,
++				                     lane);
+ 
+ 				var o = w + padding * 2 + margin;
+ 				pos += rtl ? -o : o;
