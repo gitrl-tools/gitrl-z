@@ -161,7 +161,8 @@ private static void test_checked_out_branch_is_marked()
 		var repo = braided_repo();
 		var paned = activity_for(repo);
 
-		assert_true("checked out" in paned.ref_label("main"));
+		assert_cmpstr(paned.ref_label("main"), CompareOperator.EQ,
+		              "(checked out) main");
 		assert_false("checked out" in paned.ref_label("feature"));
 
 		paned.destroy();
@@ -1894,6 +1895,26 @@ private static void test_refs_panel_bolds_a_planned_branch()
 	}
 }
 
+private static void test_refs_panel_bolds_only_the_checked_out_name()
+{
+	try
+	{
+		var repo = braided_repo();
+		var paned = activity_for(repo);
+
+		assert_true(paned.select_ref("main"));
+		assert_true(paned.toggle_entry(0));
+		assert_cmpstr(paned.ref_bold_text("main"), CompareOperator.EQ, "main");
+
+		paned.destroy();
+		repo.remove();
+	}
+	catch (Error e)
+	{
+		Test.fail_printf("fixture failed: %s", e.message);
+	}
+}
+
 private delegate bool Condition();
 
 private static void wait_until(Condition cond, uint timeout_ms)
@@ -2339,6 +2360,8 @@ public static int main(string[] args)
 	Test.add_func("/gitrlz/activity/deleted-branch-tinted", test_deleted_branch_row_is_tinted);
 	Test.add_func("/gitrlz/activity/planned-row-tinted", test_planned_row_is_tinted_and_survives_a_ref_switch);
 	Test.add_func("/gitrlz/activity/refs-bold-planned", test_refs_panel_bolds_a_planned_branch);
+	Test.add_func("/gitrlz/activity/refs-bold-checked-out-name",
+	              test_refs_panel_bolds_only_the_checked_out_name);
 	Test.add_func("/gitrlz/activity/graph-keeps-scroll", test_graph_keeps_its_scroll_across_a_toggle);
 	Test.add_func("/gitrlz/activity/graph-columns-fit", test_graph_columns_fit_on_open);
 	Test.add_func("/gitrlz/activity/columns-fit", test_columns_fit_their_content);

@@ -344,7 +344,7 @@ public class ReflogPaned : Gtk.Paned
 		}
 	}
 
-	public bool ref_row_bold(string id)
+	public string ref_bold_text(string id)
 	{
 		foreach (var child in d_refs_list.get_children())
 		{
@@ -360,7 +360,7 @@ public class ReflogPaned : Gtk.Paned
 
 			if (attrs == null)
 			{
-				return false;
+				return "";
 			}
 
 			var it = attrs.get_iterator();
@@ -371,15 +371,21 @@ public class ReflogPaned : Gtk.Paned
 
 				if (a != null && ((Pango.AttrInt)a).value >= Pango.Weight.BOLD)
 				{
-					return true;
+					return label.label.substring(a.start_index,
+					                             a.end_index - a.start_index);
 				}
 			}
 			while (it.next());
 
-			return false;
+			return "";
 		}
 
-		return false;
+		return "";
+	}
+
+	public bool ref_row_bold(string id)
+	{
+		return ref_bold_text(id) != "";
 	}
 
 	public Ggit.OId[] included_tips { get; private set; }
@@ -715,7 +721,7 @@ public class ReflogPaned : Gtk.Paned
 		foreach (var branch in d_branches)
 		{
 			var label = branch == d_current_branch
-				? _("%s (checked out)").printf(branch)
+				? _("(checked out) %s").printf(branch)
 				: branch;
 			add_ref_row(branch, label, false);
 		}
@@ -773,9 +779,10 @@ public class ReflogPaned : Gtk.Paned
 
 			if (d_plan.target_for(id) != null)
 			{
+				var start = label.label.last_index_of(id);
 				var bold = Pango.attr_weight_new(Pango.Weight.BOLD);
-				bold.start_index = 0;
-				bold.end_index = id.length;
+				bold.start_index = start;
+				bold.end_index = start + id.length;
 				attrs.insert((owned) bold);
 			}
 
