@@ -167,6 +167,10 @@ private static void test_long_history_with_collapse_does_not_crash()
 		repo.checkout("feature");
 		repo.commit_at(63, "feature work", "feature.txt");
 
+		var reflog = new Settings("%s.preferences.reflog".printf(
+			Gitrlz.Config.APPLICATION_ID));
+		reflog.set_boolean("collapse-inactive-lanes-enabled", true);
+
 		var repository = open_repo(repo);
 		var tips = Gitrlz.Repository.branch_tips(repository);
 		var colours = Gitrlz.BranchColours.map(repository, tips);
@@ -175,6 +179,7 @@ private static void test_long_history_with_collapse_does_not_crash()
 		assert_true(colours.has_key("feature"));
 		assert_true(colours.has_key("behind"));
 
+		reflog.reset("collapse-inactive-lanes-enabled");
 		repo.remove();
 	}
 	catch (Error e)

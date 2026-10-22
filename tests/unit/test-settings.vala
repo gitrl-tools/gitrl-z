@@ -86,7 +86,7 @@ private static void test_reflog_defaults()
 	var s = settings_for("preferences.reflog");
 
 	assert_cmpint(s.get_int("collapse-inactive-lanes"), CompareOperator.EQ, 2);
-	assert_true(s.get_boolean("collapse-inactive-lanes-enabled"));
+	assert_false(s.get_boolean("collapse-inactive-lanes-enabled"));
 	assert_cmpint(s.get_int("commit-limit"), CompareOperator.EQ, 2000);
 }
 
