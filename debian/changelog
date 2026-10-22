@@ -1,3 +1,20 @@
+gitrl-z (0.10.0-1) noble; urgency=medium
+
+  * In the graph, the label of the checked-out branch has a pointed left
+    end.
+  * In the graph, the label of a local branch has the colour of its lane,
+    as in the reflog list. The text of the label is light or dark,
+    whichever is easier to read. The labels of remote branches, tags and
+    the stash keep their colours.
+  * The first lane is blue, and no lane has the colour of a remote branch
+    or of a tag.
+  * A lane with no activity for many rows does not stop with an arrow. It
+    continues to the commit where the branch starts.
+  * In the branch list, the mark of the checked-out branch comes before
+    the name.
+
+ -- alexandros filotheou <alexandros.filotheou@gmail.com>  Thu, 22 Oct 2026 14:08:14 +0200
+
 gitrl-z (0.9.0-1) noble; urgency=medium
 
   * The install adds gitz, a short name for gitrlz, unless another program

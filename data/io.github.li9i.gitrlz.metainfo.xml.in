@@ -62,6 +62,32 @@
   <content_rating type="oars-1.1"/>
 
   <releases>
+    <release version="0.10.0" date="2026-10-22">
+      <description>
+        <p>
+          In the graph, the label of the checked-out branch has a pointed left
+          end.
+        </p>
+        <p>
+          In the graph, the label of a local branch has the colour of its lane,
+          as in the reflog list. The text of the label is light or dark,
+          whichever is easier to read. The labels of remote branches, tags and
+          the stash keep their colours.
+        </p>
+        <p>
+          The first lane is blue, and no lane has the colour of a remote branch
+          or of a tag.
+        </p>
+        <p>
+          A lane with no activity for many rows does not stop with an arrow. It
+          continues to the commit where the branch starts.
+        </p>
+        <p>
+          In the branch list, the mark of the checked-out branch comes before
+          the name.
+        </p>
+      </description>
+    </release>
     <release version="0.9.0" date="2026-10-16">
       <description>
         <p>
