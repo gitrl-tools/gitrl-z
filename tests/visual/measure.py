@@ -18,11 +18,12 @@ vendored renderers really are gitg's, every one of them matches exactly; if a
 patch or a CSS divergence perturbs the look, they do not. The lane colours are
 recorded but not compared, because gitrl-z changes the palette.
 
-The technique is the one the Python implementation used to derive gitg's
-constants by hand (P-FR-21): scan a row for runs of saturated colour, profile
-a dot's edge. Those recorded values — 14 px lane spacing, 4 px dot radius —
-are what tests/visual/test-parity.sh checks this code against before trusting
-it to judge anything.
+A lane line is two pixels wide and a dot is ten, so an opening of the mask of
+lane colours removes the lines and keeps the dots. A label is wider than a dot
+and is dropped by its size. This method comes from gitrl-f. The method before
+it looked for the widest run of lane colour on each scanline, and took the
+pointed label of the checked-out branch for dots: it read a row height of
+21 px where the rows are 23 px apart.
 
     measure.py <image.png> [--json]
 """
@@ -32,12 +33,16 @@ import sys
 from collections import Counter
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageFilter
 except ImportError:
     print("python3-pil is required", file=sys.stderr)
     raise SystemExit(2)
 
 
+DOT_MAX = 14
+DOT_MIN = 7
+MERGE = 3
+OPENING = 5
 PALETTE = [
     (196, 160, 0),
     (78, 154, 6),
@@ -54,170 +59,86 @@ PALETTE = [
     (233, 185, 110),
     (239, 41, 41),
 ]
-
-TOLERANCE = 24
-
-
-def palette_index(pixel):
-    """The palette slot a pixel belongs to, or None."""
-    r, g, b = pixel[:3]
-
-    best = None
-    best_distance = None
-
-    for index, (pr, pg, pb) in enumerate(PALETTE):
-        distance = abs(r - pr) + abs(g - pg) + abs(b - pb)
-
-        if distance <= TOLERANCE * 3 and (best_distance is None or distance < best_distance):
-            best = index
-            best_distance = distance
-
-    return best
+TOLERANCE = 30
 
 
-def is_saturated(pixel):
-    """Whether a pixel is part of a lane, i.e. drawn in a palette colour."""
-    return palette_index(pixel) is not None
+def cluster(values):
+    """Sorted centres of values that lie within MERGE of each other."""
+    groups = []
+
+    for value in sorted(values):
+        if groups and value - groups[-1][-1] <= MERGE:
+            groups[-1].append(value)
+        else:
+            groups.append([value])
+
+    return [sum(group) / len(group) for group in groups]
+
+
+def components(mask, width, height):
+    """Bounding boxes of the four connected regions of a mask."""
+    seen = bytearray(width * height)
+    boxes = []
+
+    for start in range(width * height):
+        if not mask[start] or seen[start]:
+            continue
+
+        seen[start] = 1
+        stack = [start]
+        left, top, right, bottom = width, height, -1, -1
+
+        while stack:
+            index = stack.pop()
+            x, y = index % width, index // width
+            left, top = min(left, x), min(top, y)
+            right, bottom = max(right, x), max(bottom, y)
+
+            for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+                if 0 <= nx < width and 0 <= ny < height:
+                    neighbour = ny * width + nx
+
+                    if mask[neighbour] and not seen[neighbour]:
+                        seen[neighbour] = 1
+                        stack.append(neighbour)
+
+        boxes.append((left, top, right, bottom))
+
+    return boxes
+
+
+def find_dots(image):
+    """Dots as (centre x, centre y, centre colour, horizontal diameter)."""
+    width, height = image.size
+    pixels = list(image.getdata())
+    slots = [palette_index(pixel) for pixel in pixels]
+    mask = Image.new("L", image.size)
+    mask.putdata([0 if slot is None else 255 for slot in slots])
+    opened = mask.filter(ImageFilter.MinFilter(OPENING)).filter(ImageFilter.MaxFilter(OPENING))
+    kept = [value > 0 for value in opened.getdata()]
+    dots = []
+
+    for left, top, right, bottom in components(kept, width, height):
+        box_width, box_height = right - left + 1, bottom - top + 1
+
+        if not (DOT_MIN <= box_width <= DOT_MAX and DOT_MIN <= box_height <= DOT_MAX):
+            continue
+
+        cx, cy = (left + right) // 2, (top + bottom) // 2
+        inside = [slots[y * width + x] for y in range(top, bottom + 1) for x in range(left, right + 1)]
+        slot = Counter(s for s in inside if s is not None).most_common(1)[0][0]
+        widest = max(run(slots, width, cx, y, slot) for y in range(top, bottom + 1))
+
+        if widest > DOT_MAX:
+            continue
+
+        dots.append((cx, cy, image.getpixel((cx, cy)), run(slots, width, cx, cy, slot)))
+
+    return dots
 
 
 def load(path):
     return Image.open(path).convert("RGB")
-
-
-DOT_MIN_WIDTH = 5
-DOT_MAX_WIDTH = 16
-
-
-def saturated_runs(image, y):
-    """Horizontal runs of saturated pixels on row y, as (start, end, colour)."""
-    width = image.width
-    runs = []
-    start = None
-    pixels = [image.getpixel((x, y)) for x in range(width)]
-
-    for x in range(width):
-        if is_saturated(pixels[x]):
-            if start is None:
-                start = x
-        elif start is not None:
-            runs.append((start, x - 1, pixels[(start + x - 1) // 2]))
-            start = None
-
-    if start is not None:
-        runs.append((start, width - 1, pixels[(start + width - 1) // 2]))
-
-    return runs
-
-
-def find_dot_rows(image):
-    """Rows that look like the vertical centre of a commit dot.
-
-    A dot's widest scanline is its centre. Scanning every row and keeping the
-    local maxima of run width finds them without knowing the row height in
-    advance.
-    """
-    widths = []
-
-    for y in range(image.height):
-        runs = saturated_runs(image, y)
-        candidates = [e - s + 1 for s, e, _ in runs if e - s + 1 <= DOT_MAX_WIDTH]
-        widest = max(candidates, default=0)
-        widths.append(widest)
-
-    centres = []
-
-    for y in range(1, image.height - 1):
-        if (DOT_MIN_WIDTH <= widths[y] <= DOT_MAX_WIDTH
-                and widths[y] >= widths[y - 1] and widths[y] > widths[y + 1]):
-            centres.append(y)
-
-    collapsed = []
-
-    for y in centres:
-        if not collapsed or y - collapsed[-1] > 3:
-            collapsed.append(y)
-
-    return collapsed
-
-
-def measure(path):
-    image = load(path)
-
-    dot_rows = find_dot_rows(image)
-
-    if len(dot_rows) < 2:
-        raise SystemExit("found fewer than two commit dots; is this a graph?")
-
-    gaps = [b - a for a, b in zip(dot_rows, dot_rows[1:])]
-    row_height = Counter(gaps).most_common(1)[0][0]
-
-    centres = []
-    colours = {}
-
-    for y in dot_rows:
-        for start, end, colour in saturated_runs(image, y):
-            width = end - start + 1
-
-            if width < DOT_MIN_WIDTH or width > DOT_MAX_WIDTH:
-                continue
-
-            centre = (start + end) // 2
-            centres.append(centre)
-            colours.setdefault(centre, []).append(colour)
-
-    seen_rows = {}
-
-    for y in dot_rows:
-        for start, end, _ in saturated_runs(image, y):
-            width = end - start + 1
-
-            if DOT_MIN_WIDTH <= width <= DOT_MAX_WIDTH:
-                seen_rows.setdefault((start + end) // 2, set()).add(y)
-
-    recurring = sorted(c for c, rows in seen_rows.items() if len(rows) >= 2)
-
-    unique = []
-
-    for c in recurring:
-        if not unique or c - unique[-1] > 4:
-            unique.append(c)
-
-    lane_spacing = None
-
-    if len(unique) >= 2:
-        spacings = [b - a for a, b in zip(unique, unique[1:])]
-        lane_spacing = Counter(spacings).most_common(1)[0][0]
-
-    diameters = []
-
-    for y in dot_rows:
-        for start, end, _ in saturated_runs(image, y):
-            width = end - start + 1
-            centre = (start + end) // 2
-
-            if DOT_MIN_WIDTH <= width <= DOT_MAX_WIDTH and any(
-                abs(centre - u) <= 4 for u in unique
-            ):
-                diameters.append(width)
-
-    dot_radius = round(Counter(diameters).most_common(1)[0][0] / 2.0, 1) if diameters else None
-
-    lane_colours = []
-
-    for c in unique:
-        samples = colours.get(c, [])
-
-        if samples:
-            lane_colours.append(Counter(samples).most_common(1)[0][0])
-
-    return {
-        "dots": len(dot_rows),
-        "row_height": row_height,
-        "lane_spacing": lane_spacing,
-        "lane_count": len(unique),
-        "dot_radius": dot_radius,
-        "lane_colours": ["#%02x%02x%02x" % c for c in lane_colours],
-    }
 
 
 def main():
@@ -234,6 +155,60 @@ def main():
             print("{}: {}".format(key, result[key]))
 
     return 0
+
+
+def measure(path):
+    image = load(path)
+    dots = find_dots(image)
+
+    if len(dots) < 2:
+        raise SystemExit("found fewer than two commit dots; is this a graph?")
+
+    rows = cluster([y for _, y, _, _ in dots])
+    lanes = cluster([x for x, _, _, _ in dots])
+    row_gaps = [round(b - a) for a, b in zip(rows, rows[1:])]
+    lane_gaps = [round(b - a) for a, b in zip(lanes, lanes[1:])]
+    lane_colours = []
+
+    for lane in lanes:
+        samples = [colour for x, _, colour, _ in dots if abs(x - lane) <= MERGE]
+        lane_colours.append(Counter(samples).most_common(1)[0][0])
+
+    return {
+        "dots": len(dots),
+        "row_height": Counter(row_gaps).most_common(1)[0][0] if row_gaps else None,
+        "lane_spacing": Counter(lane_gaps).most_common(1)[0][0] if lane_gaps else None,
+        "lane_count": len(lanes),
+        "dot_radius": Counter(d for _, _, _, d in dots).most_common(1)[0][0] / 2.0,
+        "lane_colours": ["#%02x%02x%02x" % c for c in lane_colours],
+    }
+
+
+def palette_index(pixel):
+    """The palette slot a pixel is drawn in, or None."""
+    best = None
+    best_distance = TOLERANCE + 1
+
+    for index, colour in enumerate(PALETTE):
+        distance = sum(abs(a - b) for a, b in zip(pixel, colour))
+
+        if distance < best_distance:
+            best, best_distance = index, distance
+
+    return best
+
+
+def run(slots, width, x, y, slot):
+    """Length of the horizontal run of one palette slot through a pixel."""
+    x0 = x1 = x
+
+    while x0 > 0 and slots[y * width + x0 - 1] == slot:
+        x0 -= 1
+
+    while x1 < width - 1 and slots[y * width + x1 + 1] == slot:
+        x1 += 1
+
+    return x1 - x0 + 1 if slots[y * width + x] == slot else 0
 
 
 if __name__ == "__main__":

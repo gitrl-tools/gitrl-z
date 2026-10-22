@@ -1,12 +1,11 @@
 {
   "dot_radius": 5.0,
-  "dots": 9,
+  "dots": 6,
   "lane_colours": [
     "#c4a000",
-    "#4e9a06",
-    "#204a87"
+    "#4e9a06"
   ],
-  "lane_count": 3,
+  "lane_count": 2,
   "lane_spacing": 16,
   "row_height": 23
 }

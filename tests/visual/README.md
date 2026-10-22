@@ -23,6 +23,19 @@ docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp \
     -v "$PWD:/src" -w /src gitrlz-visual ./tests/visual/test-parity.sh
 ```
 
+Or directly on a machine that has gitg, Xvfb, xdotool, ImageMagick and
+python3-pil:
+
+```bash
+./tests/visual/test-parity.sh
+```
+
+The suite gives both programs the default settings and DejaVu Sans 10
+(`settings.ini`), so the settings and the fonts of the user do not change
+the captures. On a machine where "Sans" is another font, or where gitg
+keeps a small window from its last use, the captures were different before
+2026-10-22, and the suite failed.
+
 Or through meson, which keeps it off by default:
 
 ```bash
@@ -59,10 +72,21 @@ code:
    ref pill appears one time only. The pill blue of gitg `#204a87` is itself
    a palette entry, thus the colour alone cannot separate them.
 
-The crop windows in `test-parity.sh` are constants of the fixture and the
-window size. They are not constants of the applications. If you change the
-fixture or the window size, derive the crop windows again against
-`reference/`.
+On 2026-10-22, `measure.py` took the method of gitrl-f. An opening of the
+mask of palette colours removes the lines and keeps the dots, and a label is
+dropped by its size. The method before it found the dots by the widest run of
+colour on each scanline. It read a row height of 21 px from the pointed label
+of the checked-out branch, where the rows are 23 px apart. It also counted the
+blue label of gitg as a third lane: `reference/gitg.json` gave 9 dots on 3
+lanes, where gitg shows 6 commits on 2 lanes. The file now holds the
+measurement of the same capture by the new method.
+
+The crop windows in `test-parity.sh` are constants of the fixture, the
+window size and the layout of each program. They are not constants of the
+applications. On 2026-10-22 the window of gitrl-z put its preview graph 66 px
+to the right of and 84 px above the place of the old crop, and the crop moved
+with it. If you change the fixture, the window size or the layout, derive the
+crop windows again against `reference/`.
 
 `selfcheck.py` runs on each pass. It fails the suite if a 130% rescale stays
 undetected. This check is necessary. The larger risk is not that the
@@ -78,5 +102,6 @@ being able to find one, and gives no message.
 | `capture-gitrlz.sh` | the same, but selects a row so that a preview graph exists |
 | `measure.py` | reads the geometry from a capture |
 | `selfcheck.py` | proves that the comparison can fail |
+| `settings.ini` | the GTK theme and font of both programs |
 | `test-parity.sh` | the suite |
 | `reference/` | committed captures and the measurements of gitg |

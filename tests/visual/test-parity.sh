@@ -6,10 +6,14 @@ root=$(dirname "$(dirname "$(dirname "$(readlink -f "$0")")")")
 out=${GITRLZ_VISUAL_OUT:-$root/_build/visual}
 fixture=${GITRLZ_VISUAL_FIXTURE:-/tmp/gitrlz-visual-fixture}
 
-mkdir -p "$out"
+mkdir -p "$out" "$out/config/gtk-3.0"
+cp "$root/tests/visual/settings.ini" "$out/config/gtk-3.0/settings.ini"
+
+export XDG_CONFIG_HOME=$out/config
+export GSETTINGS_BACKEND=memory
 
 GITG_CROP=${GITG_CROP:-90x180+200+50}
-GITRLZ_CROP=${GITRLZ_CROP:-90x180+205+535}
+GITRLZ_CROP=${GITRLZ_CROP:-90x180+271+451}
 
 echo "--- fixture ---"
 "$root/tests/visual/fixture.sh" "$fixture" >/dev/null
