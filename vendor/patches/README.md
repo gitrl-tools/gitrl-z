@@ -73,7 +73,9 @@ Cost: none.
 
 ## gitg-color.patch
 
-Adds `Color.from_index(uint)`.
+Two changes.
+
+**1. Adds `Color.from_index(uint)`.**
 
 **Why.** Upstream gives colours in sequence only, through `next()` and
 `next_index()`. This is sufficient for the graph, which colours lanes in the
@@ -82,8 +84,23 @@ list and its operation gutter. For a given branch, these must select the
 *same* colour as the graph, and not the next colour in a shared sequence
 (FR-102).
 
-The change is additive. No existing behaviour changes, and `palette` stays
-private, because `from_index` wraps the index and does not expose a bound.
+This change is additive, and `palette` stays private, because `from_index`
+wraps the index and does not expose a bound.
+
+**2. Changes the palette.**
+
+`#204a87` is the first colour, and `#4e9a06`, `#ce5c00`, `#8ae234`,
+`#fcaf3e` and `#e9b96e` are removed. The other colours keep their order.
+
+**Why.** `gitg-label-renderer.patch` fills a branch label with the colour of
+its lane. `style.css` gives `#4e9a06` to the labels of remote branches and
+`#ce5c00` to the labels of tags. With these colours in the palette, a branch
+label could have the colour of a remote branch or of a tag. `#8ae234`,
+`#fcaf3e` and `#e9b96e` are lighter shades of these two colours, and were too
+near them. `#204a87` is the colour that gitg gives to all branch labels.
+
+Cost: the lanes do not have the colours of gitg, and the palette has 9
+colours, not 14. Thus the visual suite does not compare the lane colours.
 
 ## gitg-lanes.patch
 

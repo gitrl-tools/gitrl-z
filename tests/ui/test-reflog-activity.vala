@@ -86,12 +86,41 @@ private static void ink_range(Cairo.ImageSurface surface, int y,
 	}
 }
 
+private static Gdk.RGBA kind_fill(Gtk.StyleContext context, string kind)
+{
+	context.save();
+	context.add_class(kind);
+	var fill = (Gdk.RGBA)context.get_property("background-color",
+	                                          context.get_state());
+	context.restore();
+
+	return fill;
+}
+
 private static Gitg.Color lane_colour(uint index)
 {
 	var colour = new Gitg.Color();
 	colour.idx = index;
 
 	return colour;
+}
+
+private static string[] lane_colours()
+{
+	var colours = new string[0];
+
+	Gitg.Color.reset();
+	var first = Gitg.Color.next();
+	var lane = first;
+
+	do
+	{
+		colours += rgba_of(lane).to_string();
+		lane = Gitg.Color.next();
+	}
+	while (lane.idx != first.idx);
+
+	return colours;
 }
 
 private static Cairo.ImageSurface pill_of(Gitg.Repository repository,
@@ -319,8 +348,8 @@ private static void test_branch_pills_take_the_colour_of_their_line()
 		var width = 120;
 		var height = 23;
 		var middle = height / 2;
-		var yellow = lane_colour(0);
-		var blue = lane_colour(3);
+		var yellow = lane_colour(1);
+		var blue = lane_colour(0);
 		int darkest;
 		int lightest;
 
@@ -374,6 +403,54 @@ private static void test_branch_pills_take_the_colour_of_their_line()
 	{
 		Test.fail_printf("fixture failed: %s", e.message);
 	}
+}
+
+private static void test_no_lane_is_in_the_colours_of_a_remote_or_a_tag()
+{
+	var screen = Gdk.Screen.get_default();
+	var style = new Gtk.CssProvider();
+	var context = new Gtk.TreeView().get_style_context();
+	var lanes = lane_colours();
+	string[] shades = {
+		"chameleon1", "chameleon2", "chameleon3",
+		"orange1", "orange2", "orange3",
+		"chocolate1", "chocolate2", "chocolate3"
+	};
+
+	style.load_from_resource("/io/github/li9i/gitrlz/ui/style.css");
+	Gtk.StyleContext.add_provider_for_screen(
+		screen, style, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+	foreach (var kind in new string[] { "remote", "tag" })
+	{
+		assert_false(kind_fill(context, kind).to_string() in lanes);
+	}
+
+	foreach (var name in shades)
+	{
+		Gdk.RGBA shade;
+
+		assert_true(context.lookup_color(name, out shade));
+		assert_false(shade.to_string() in lanes);
+	}
+
+	Gtk.StyleContext.remove_provider_for_screen(screen, style);
+}
+
+private static void test_the_first_lane_has_the_blue_of_a_branch()
+{
+	var screen = Gdk.Screen.get_default();
+	var style = new Gtk.CssProvider();
+	var context = new Gtk.TreeView().get_style_context();
+
+	style.load_from_resource("/io/github/li9i/gitrlz/ui/style.css");
+	Gtk.StyleContext.add_provider_for_screen(
+		screen, style, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+	assert_cmpstr(lane_colours()[0], CompareOperator.EQ,
+	              kind_fill(context, "branch").to_string());
+
+	Gtk.StyleContext.remove_provider_for_screen(screen, style);
 }
 
 private static void test_stash_entry_appears_only_with_a_stash()
@@ -2490,6 +2567,10 @@ public static int main(string[] args)
 	              test_checked_out_pill_is_pointed_and_filled_like_the_others);
 	Test.add_func("/gitrlz/activity/branch-pill-line-colour",
 	              test_branch_pills_take_the_colour_of_their_line);
+	Test.add_func("/gitrlz/activity/no-lane-in-remote-or-tag-colours",
+	              test_no_lane_is_in_the_colours_of_a_remote_or_a_tag);
+	Test.add_func("/gitrlz/activity/first-lane-is-branch-blue",
+	              test_the_first_lane_has_the_blue_of_a_branch);
 	Test.add_func("/gitrlz/activity/stash-entry", test_stash_entry_appears_only_with_a_stash);
 	Test.add_func("/gitrlz/activity/selecting-a-ref-reloads", test_selecting_a_ref_reloads_the_list);
 	Test.add_func("/gitrlz/activity/empty-plan-shows-tree", test_empty_plan_shows_the_repository_tree);

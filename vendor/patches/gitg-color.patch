@@ -1,9 +1,32 @@
 --- a/libgitg/gitg-color.vala
 +++ b/libgitg/gitg-color.vala
-@@ -98,6 +98,27 @@
- 		return ret;
+@@ -30,20 +30,15 @@
  	}
  
+ 	private const Rgb[] palette = {
+-		{196, 160, 0},
+-		{78, 154, 6},
+-		{206, 92, 0},
+ 		{32, 74, 135},
++		{196, 160, 0},
+ 		{108, 53, 102},
+ 		{164, 0, 0},
+ 
+-		{138, 226, 52},
+-		{252, 175, 62},
+ 		{114, 159, 207},
+ 		{252, 233, 79},
+ 		{136, 138, 133},
+ 		{173, 127, 168},
+-		{233, 185, 110},
+ 		{239, 41, 41}
+ 	};
+ 
+@@ -97,6 +92,27 @@
+ 
+ 		return ret;
+ 	}
++
 +	/*
 +	 * gitrl-z addition: a colour at a chosen index.
 +	 *
@@ -24,7 +47,6 @@
 +
 +		return ret;
 +	}
-+
+ 
  	public Color next_index()
  	{
- 		this.idx = inc_index();

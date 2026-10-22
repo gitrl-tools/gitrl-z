@@ -7,9 +7,10 @@ compares the **geometry**, not the pixels (spec 6.3.1).
 
 gitg shows all refs. The preview of gitrl-z shows local branches, with one
 tip substituted. The two draw different commit sets by design. But the lane
-spacing, the dot radius, the row height and the lane colour are readable from
-two different graphs. These are the properties that FR-102 delegates to
-vendored code.
+spacing, the dot radius and the row height are readable from two different
+graphs. These are the properties that FR-102 delegates to vendored code. The
+suite does not compare the lane colours, because gitrl-z changes the palette
+(`vendor/patches/README.md`, `gitg-color.patch`).
 
 A failure also names the property and the two values. A pixel diff would give
 a pixel count only, and you must then find what moved.
@@ -36,7 +37,6 @@ meson test -C _build --suite visual
 | lane spacing | 16 px | 16 px |
 | dot radius | 5.0 px | 5.0 px |
 | row height | 23 px | 23 px |
-| first lane colour | `#c4a000` | `#c4a000` |
 
 The dot *counts* and the lane *counts* are different, as they must be,
 because the commit sets are different.

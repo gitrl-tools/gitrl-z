@@ -52,15 +52,6 @@ for key in COMPARED:
     else:
         print("  {}: {} (match)".format(key, a))
 
-if gitg["lane_colours"] and gitrlz["lane_colours"]:
-    if gitg["lane_colours"][0] != gitrlz["lane_colours"][0]:
-        failures.append("first lane colour: gitg {}, gitrl-z {}".format(
-            gitg["lane_colours"][0], gitrlz["lane_colours"][0]))
-    else:
-        print("  first lane colour: {} (match)".format(gitg["lane_colours"][0]))
-else:
-    failures.append("no lane colours detected in one of the captures")
-
 if failures:
     print("\nGEOMETRY DIFFERS:")
     for f in failures:

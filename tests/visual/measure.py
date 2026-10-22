@@ -13,9 +13,10 @@ What this measures, and why each one:
     row_height     vertical distance between adjacent commit rows
     lane_colours   the RGB the renderer actually used, per lane
 
-These are the properties FR-102 delegates to vendored code. If the vendored
-renderers really are gitg's, every one of them matches exactly; if a patch or
-a CSS divergence perturbs the look, they do not.
+The first three are the properties FR-102 delegates to vendored code. If the
+vendored renderers really are gitg's, every one of them matches exactly; if a
+patch or a CSS divergence perturbs the look, they do not. The lane colours are
+recorded but not compared, because gitrl-z changes the palette.
 
 The technique is the one the Python implementation used to derive gitg's
 constants by hand (P-FR-21): scan a row for runs of saturated colour, profile
